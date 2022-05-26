@@ -17,8 +17,7 @@ func main() {
 }
 
 type clock struct {
-	top    [5]color.RGBA
-	bottom [5]color.RGBA
+	lights []color.RGBA
 	device ws2812.Device
 }
 
@@ -27,6 +26,7 @@ func newClock() clock {
 	neo.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	device := ws2812.New(neo)
 	return clock{
+		lights: make([]color.RGBA, 10),
 		device: device,
 	}
 }
@@ -34,17 +34,13 @@ func newClock() clock {
 func (c clock) tick() {
 	t := time.Now()
 	s := t.Second()
-	for i := range c.top {
+	for i := range c.lights {
 		mask := 1 << i
 		if on := s & mask; on > 0 {
-			c.top[i] = color.RGBA{R: 0x01, G: 0x01, B: 0x01}
+			c.lights[i] = color.RGBA{R: 0x01, G: 0x01, B: 0x01}
 		} else {
-			c.top[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+			c.lights[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
 		}
 	}
-	var all [10]color.RGBA
-	for i := range c.top {
-		all[i] = c.top[i]
-	}
-	c.device.WriteColors(all[0:len(all)])
+	c.device.WriteColors(c.lights)
 }
