@@ -54,18 +54,6 @@ func newClock() *clock {
 	}
 }
 
-func (c *clock) modeUp() {
-	if c.mode < hours {
-		c.mode++
-	}
-}
-
-func (c *clock) modeDown() {
-	if c.mode > milliseconds {
-		c.mode--
-	}
-}
-
 func (c *clock) readButtons() {
 	if c.click {
 		if c.bottomButton.Get() || c.topButton.Get() {
@@ -76,11 +64,15 @@ func (c *clock) readButtons() {
 
 	if c.topButton.Get() {
 		c.click = true
-		c.modeUp()
+		if c.mode < hours {
+			c.mode++
+		}
 	}
 	if c.bottomButton.Get() {
 		c.click = true
-		c.modeDown()
+		if c.mode > milliseconds {
+			c.mode--
+		}
 	}
 }
 
