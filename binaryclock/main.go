@@ -2,10 +2,9 @@ package main
 
 import (
 	"image/color"
-	"machine"
 	"time"
 
-	"tinygo.org/x/drivers/ws2812"
+	"github.com/josephburnett/bot/pkg/express"
 )
 
 func main() {
@@ -25,51 +24,24 @@ const (
 )
 
 type clock struct {
-	mode         int
-	click        bool
-	topButton    machine.Pin
-	bottomButton machine.Pin
-	device       ws2812.Device
-	lights       []color.RGBA
+	mode  int
+	board *express.Board
 }
 
 func newClock() *clock {
-
-	neo := machine.NEOPIXELS
-	neo.Configure(machine.PinConfig{Mode: machine.PinOutput})
-	device := ws2812.New(neo)
-
-	top := machine.BUTTONA
-	top.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
-
-	bottom := machine.BUTTONB
-	bottom.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
-
 	return &clock{
-		mode:         seconds,
-		topButton:    top,
-		bottomButton: bottom,
-		device:       device,
-		lights:       make([]color.RGBA, 10),
+		mode:  seconds,
+		board: express.NewBoard(),
 	}
 }
 
 func (c *clock) readButtons() {
-	if c.click {
-		if c.bottomButton.Get() || c.topButton.Get() {
-			return
-		}
-	}
-	c.click = false
-
-	if c.topButton.Get() {
-		c.click = true
+	if _, push := c.board.HandleButtonA(); push {
 		if c.mode < hours {
 			c.mode++
 		}
 	}
-	if c.bottomButton.Get() {
-		c.click = true
+	if _, push := c.board.HandleButtonB(); push {
 		if c.mode > milliseconds {
 			c.mode--
 		}
@@ -96,13 +68,14 @@ func (c *clock) displayTime() {
 		displayNumber = t.Hour() + 1
 	}
 
-	for i := range c.lights {
+	var lights [10]color.RGBA
+	for i := range lights {
 		mask := 1 << i
 		if on := displayNumber & mask; on > 0 {
-			c.lights[i] = displayColor
+			lights[i] = displayColor
 		} else {
-			c.lights[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+			lights[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
 		}
 	}
-	c.device.WriteColors(c.lights)
+	c.board.SetLights(lights)
 }
