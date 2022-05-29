@@ -17,65 +17,70 @@ func main() {
 }
 
 const (
-	milliseconds = iota
-	seconds
-	minutes
-	hours
+	displayMillisAndSeconds = iota
+	displaySecondsAndMinutes
+	displayMinutesAndHours
+)
+
+var (
+	colorOff     = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+	colorMillis  = color.RGBA{R: 0x01, G: 0x00, B: 0x00}
+	colorSeconds = color.RGBA{R: 0x01, G: 0x01, B: 0x00}
+	colorMinutes = color.RGBA{R: 0x00, G: 0x01, B: 0x00}
+	colorHours   = color.RGBA{R: 0x00, G: 0x00, B: 0x01}
 )
 
 type clock struct {
-	mode  int
-	board *express.Board
+	display int
+	board   *express.Board
 }
 
 func newClock() *clock {
 	return &clock{
-		mode:  seconds,
-		board: express.NewBoard(),
+		display: displayMillisAndSeconds,
+		board:   express.NewBoard(),
 	}
 }
 
 func (c *clock) readButtons() {
 	if _, push := c.board.HandleButtonA(); push {
-		if c.mode < hours {
-			c.mode++
+		if c.display < displayMinutesAndHours {
+			c.display++
 		}
 	}
 	if _, push := c.board.HandleButtonB(); push {
-		if c.mode > milliseconds {
-			c.mode--
+		if c.display > displayMillisAndSeconds {
+			c.display--
 		}
 	}
 }
 
 func (c *clock) displayTime() {
-	t := time.Now()
-	var displayNumber int
-	var displayColor color.RGBA
-
-	switch c.mode {
-	case milliseconds:
-		displayNumber = t.Nanosecond()/1000/1000 + 1
-		displayColor = color.RGBA{R: 0x01, G: 0x00, B: 0x00}
-	case seconds:
-		displayNumber = t.Second() + 1
-		displayColor = color.RGBA{R: 0x01, G: 0x01, B: 0x00}
-	case minutes:
-		displayNumber = t.Minute() + 1
-		displayColor = color.RGBA{R: 0x00, G: 0x01, B: 0x00}
-	case hours:
-		displayColor = color.RGBA{R: 0x00, G: 0x00, B: 0x01}
-		displayNumber = t.Hour() + 1
-	}
 
 	var lights [10]color.RGBA
 	for i := range lights {
-		mask := 1 << i
-		if on := displayNumber & mask; on > 0 {
-			lights[i] = displayColor
-		} else {
-			lights[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+		lights[i] = colorOff
+	}
+
+	set := func(number, offset int, color color.RGBA) {
+		for i := range lights {
+			mask := 1 << i
+			index := (i + offset) % len(lights)
+			if on := number & mask; on > 0 {
+				lights[index] = color
+			} else {
+				lights[index] = colorOff
+			}
 		}
+	}
+
+	t := time.Now()
+	switch c.display {
+	case displayMillisAndSeconds:
+		millis := t.Nanosecond() / 1000 / 1000
+		seconds := t.Second()
+		set(millis, 5, colorMillis)
+		set(seconds, 0, colorSeconds)
 	}
 	c.board.SetLights(lights)
 }
