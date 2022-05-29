@@ -18,7 +18,6 @@ func main() {
 
 const (
 	displayMillisAndSeconds = iota
-	displaySecondsAndMinutes
 	displayMinutesAndHours
 )
 
@@ -93,11 +92,6 @@ func (c *clock) displayTime() {
 		seconds := t.Second() + 1
 		set(millis, 0, [2]int{6, 10}, colorMillisHigh, colorMillisLow)
 		set(seconds, 0, [2]int{0, 6}, colorSecondsHigh, colorSecondsLow)
-	case displaySecondsAndMinutes:
-		seconds := t.Second() + 1
-		minutes := t.Minute() + 1
-		set(seconds, 4, [2]int{2, 6}, colorSecondsHigh, colorSecondsLow)
-		set(minutes, 0, [2]int{0, 6}, colorMinutesHigh, colorMinutesLow)
 	case displayMinutesAndHours:
 		minutes := t.Minute() + 1
 		hours := t.Hour()%12 + 1
