@@ -62,8 +62,11 @@ func (c *clock) displayTime() {
 		lights[i] = colorOff
 	}
 
-	set := func(number, offset int, color color.RGBA) {
+	set := func(number, offset int, lightsRange [2]int, color color.RGBA) {
 		for i := range lights {
+			if i < lightsRange[0] || i >= lightsRange[1] {
+				continue
+			}
 			mask := 1 << i
 			index := (i + offset) % len(lights)
 			if on := number & mask; on > 0 {
@@ -79,8 +82,8 @@ func (c *clock) displayTime() {
 	case displayMillisAndSeconds:
 		millis := t.Nanosecond() / 1000 / 1000
 		seconds := t.Second()
-		set(millis, 5, colorMillis)
-		set(seconds, 0, colorSeconds)
+		set(millis, 0, [2]int{6, 10}, colorMillis)
+		set(seconds, 0, [2]int{0, 5}, colorSeconds)
 	}
 	c.board.SetLights(lights)
 }
