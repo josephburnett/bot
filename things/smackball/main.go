@@ -18,7 +18,7 @@ func main() {
 const (
 	decelerationRate = 0.005 // Rate of ball's deceleration per tick
 	minSpeed         = 0.003 // Minimum speed of the ball
-	smackPower       = 0.05  // Max speed added by a smack
+	smackPower       = 0.5   // Max speed added by a smack
 	smackPointA      = 0.4   // Player A smacking clockwise
 	smackPointB      = 0.6   // Player B smacking anti-clockwise
 	smackRange       = 0.1   // Range of the players' rackets
