@@ -19,10 +19,10 @@ const (
 	decelerationRate = 0.005 // Rate of ball's deceleration per tick
 	minSpeed         = 0.003 // Minimum speed of the ball
 	maxSpeed         = 0.05  // Maximum speed of the ball
-	smackPower       = 0.2   // Max speed added by a smack
-	smackPointA      = 0.4   // Player A smacking clockwise
-	smackPointB      = 0.6   // Player B smacking anti-clockwise
-	smackRange       = 0.1   // Range of the players' rackets
+	smackPower       = 0.01  // Max speed added by a smack
+	smackPointA      = 0.25  // Player A smacking clockwise
+	smackPointB      = 0.75  // Player B smacking anti-clockwise
+	smackRange       = 0.05  // Range of the players' rackets +/-
 )
 
 type game struct {
@@ -79,30 +79,30 @@ func (g *game) advanceBall() {
 func (g *game) smackBall() {
 	if _, push := g.board.HandleButtonA(); push {
 		// Player A swings their racket
-		smackRangeEnd := smackPointA - smackRange
-		if g.point > smackRangeEnd && g.point <= smackPointA {
+		from := smackPointA - smackRange
+		to := smackPointA + smackRange
+		if g.point > from && g.point < to {
 			// Player A smacks the ball
-			power := (g.point - smackRangeEnd) * smackPower
 			if g.speed > 0 {
 				// Ball changes direction
 				g.speed *= -1
 			}
 			// Ball picks up speed clockwise
-			g.speed -= power
+			g.speed -= smackPower
 		}
 	}
 	if _, push := g.board.HandleButtonB(); push {
 		// Player B swings their racket
-		smackRangeEnd := smackPointB + smackRange
-		if g.point < smackRangeEnd && g.point >= smackPointA {
+		from := smackPointB - smackRange
+		to := smackPointB + smackRange
+		if g.point > from && g.point < to {
 			// Play B smacks the ball
-			power := (smackRangeEnd - g.point) * smackPower
 			if g.speed < 0 {
 				// Ball changes direction
 				g.speed *= -1
 			}
 			// Ball picks up speed clockwise
-			g.speed += power
+			g.speed += smackPower
 		}
 	}
 }
@@ -128,6 +128,10 @@ func (g *game) updateDisplay() {
 		}
 	}
 	lights := [10]color.RGBA{}
+	// Player A smack point
+	lights[2] = color.RGBA{B: 0x01}
+	// Player B smack point
+	lights[7] = color.RGBA{G: 0x01}
 	// USB is where the first light should be
 	if light > 0 && light < 6 {
 		lights[light-1] = color.RGBA{R: 0x01}
