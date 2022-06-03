@@ -18,7 +18,8 @@ func main() {
 const (
 	decelerationRate = 0.005 // Rate of ball's deceleration per tick
 	minSpeed         = 0.003 // Minimum speed of the ball
-	smackPower       = 0.5   // Max speed added by a smack
+	maxSpeed         = 0.05  // Maximum speed of the ball
+	smackPower       = 0.2   // Max speed added by a smack
 	smackPointA      = 0.4   // Player A smacking clockwise
 	smackPointB      = 0.6   // Player B smacking anti-clockwise
 	smackRange       = 0.1   // Range of the players' rackets
@@ -47,11 +48,21 @@ func (g *game) tick() {
 
 func (g *game) slowDownBall() {
 	g.speed = g.speed * (1 - decelerationRate)
-	if g.speed > 0 && g.speed < minSpeed {
-		g.speed = minSpeed
+	if g.speed > 0 {
+		if g.speed < minSpeed {
+			g.speed = minSpeed
+		}
+		if g.speed > maxSpeed {
+			g.speed = maxSpeed
+		}
 	}
-	if g.speed < 0 && g.speed > -minSpeed {
-		g.speed = -minSpeed
+	if g.speed < 0 {
+		if g.speed > -minSpeed {
+			g.speed = -minSpeed
+		}
+		if g.speed < -maxSpeed {
+			g.speed = -maxSpeed
+		}
 	}
 }
 
