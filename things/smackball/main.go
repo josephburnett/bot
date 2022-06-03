@@ -79,7 +79,7 @@ func (g *game) advanceBall() {
 func (g *game) smackBall() {
 	if _, push := g.board.HandleButtonA(); push {
 		// Player A swings their racket
-		from := smackPointA - smackRange
+		from := smackPointA - smackRange*2
 		to := smackPointA + smackRange
 		if g.point > from && g.point < to {
 			// Player A smacks the ball
@@ -94,7 +94,7 @@ func (g *game) smackBall() {
 	if _, push := g.board.HandleButtonB(); push {
 		// Player B swings their racket
 		from := smackPointB - smackRange
-		to := smackPointB + smackRange
+		to := smackPointB + smackRange*2
 		if g.point > from && g.point < to {
 			// Play B smacks the ball
 			if g.speed < 0 {
