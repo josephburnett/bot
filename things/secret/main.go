@@ -11,23 +11,23 @@ import (
 func main() {
 	s := newSecret()
 	for {
-		s.showPrompt()
+		s.prompt()
 		if _, push := s.board.HandleButtonA(); push {
-			if s.guessNext(true) {
-				s.showCorrect()
+			if s.isNext(true) {
+				s.correct()
 			} else {
-				s.showIncorrect()
+				s.incorrect()
 			}
 		}
 		if _, push := s.board.HandleButtonB(); push {
-			if s.guessNext(false) {
-				s.showCorrect()
+			if s.isNext(false) {
+				s.correct()
 			} else {
-				s.showIncorrect()
+				s.incorrect()
 			}
 		}
 		if s.isWin() {
-			s.showWin()
+			s.win()
 			s.newCode()
 		}
 		time.Sleep(10 * time.Millisecond)
@@ -48,15 +48,13 @@ func newSecret() *secret {
 	return s
 }
 
-func (s *secret) guessNext(guess bool) (correct bool) {
+func (s *secret) isNext(guess bool) (correct bool) {
 	if s.count == 10 {
 		return true
 	}
 	if s.code[s.count] == guess {
-		s.count++
 		return true
 	}
-	s.count = 0
 	return false
 }
 
@@ -95,27 +93,48 @@ func (s *secret) getColors() [10]color.RGBA {
 	return colors
 }
 
-func (s *secret) showCorrect() {
-	colors := s.getColors()
-	s.board.SetLights(colors)
-	time.Sleep(200 * time.Millisecond)
-}
-
-func (s *secret) showIncorrect() {
-	colors := s.getColors()
+func (s *secret) correct() {
 	if s.count < 10 {
-		colors[s.count] = color.RGBA{R: 0x01, G: 0x00, B: 0x00}
+		s.count++
 	}
+	colors := s.getColors()
 	s.board.SetLights(colors)
 	time.Sleep(200 * time.Millisecond)
 }
 
-func (s *secret) showWin() {
-	colors := s.getColors()
-	s.board.SetLights(colors)
+func (s *secret) incorrect() {
+	for i := s.count - 1; i >= 0; i-- {
+		colors := s.getColors()
+		colors[i] = color.RGBA{R: 0x01, G: 0x00, B: 0x00}
+		s.board.SetLights(colors)
+		s.count = i
+		time.Sleep(50 * time.Millisecond)
+	}
+	time.Sleep(500 * time.Millisecond)
 }
 
-func (s *secret) showPrompt() {
+func (s *secret) win() {
 	colors := s.getColors()
+	for j := 0; j < 5*len(colors); j++ {
+		temp := colors[0]
+		for i := 1; i < len(colors); i++ {
+			colors[i-1] = colors[i]
+		}
+		colors[len(colors)-1] = temp
+		s.board.SetLights(colors)
+		time.Sleep(75 * time.Millisecond)
+	}
+}
+
+const blinkRate = 500
+
+func (s *secret) prompt() {
+	colors := s.getColors()
+	t := time.Now().UnixMilli() % blinkRate
+	if t > blinkRate/2 {
+		t = blinkRate - t
+	}
+	t = t / (blinkRate / 10)
+	colors[s.count] = color.RGBA{R: 0x00, G: uint8(t), B: uint8(t)}
 	s.board.SetLights(colors)
 }
