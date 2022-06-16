@@ -10,9 +10,20 @@ import (
 
 func main() {
 	s := newSecret()
+	started := false
+	maybeStart := func() {
+		// Wait for the first button push so we can get a
+		// decent pseudorandom code.
+		if started {
+			return
+		}
+		s.newCode()
+		started = true
+	}
 	for {
 		s.prompt()
 		if _, push := s.board.HandleButtonA(); push {
+			maybeStart()
 			if s.isNext(true) {
 				s.correct()
 			} else {
@@ -20,6 +31,7 @@ func main() {
 			}
 		}
 		if _, push := s.board.HandleButtonB(); push {
+			maybeStart()
 			if s.isNext(false) {
 				s.correct()
 			} else {
@@ -103,7 +115,7 @@ func (s *secret) correct() {
 }
 
 func (s *secret) incorrect() {
-	for i := s.count - 1; i >= 0; i-- {
+	for i := s.count; i >= 0; i-- {
 		colors := s.getColors()
 		colors[i] = color.RGBA{R: 0x01, G: 0x00, B: 0x00}
 		s.board.SetLights(colors)
